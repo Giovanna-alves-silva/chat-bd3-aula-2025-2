@@ -38,6 +38,32 @@
         //Conexão com o socket.io do backend:
         const socket = io('http://localhost:3000')
 
+        //Função de renderização de mensagem no navegador:
+        function renderMessage(message) {
+            $('.messages').append(
+                '<div  class = "message"><strong>' +
+                    message.author +
+                    message.data_hora +
+                    '</strong>: ' +
+                    message.message
+
+            );
+        }
+
+        //Recupera as mensagens anteriores de todos os usuários e exibe na tela do navegador:
+        socket.on('previousMessage', function(messages){
+            for(message of messages){
+                renderMessage(message);
+            }
+
+        });
+
+        //Renderiza novas mensagens enviadas por outros usuários:
+        socket.on('receveidMessage', function (message) {
+            renderMessage(message);
+        });
+
+
         //Captura os dados de usuário e da mensagem do usuário:
         $('#chat').submit(function(event){
 
@@ -45,14 +71,28 @@
             //alert('DEU CERTO!!!');
 
         //Recupera os dados de usuário e mensagem:
-        let usuario= $('input[name=username]').val();
-        let mensagem=$('input[name=message]').val();
+        var usuario= $('input[name=username]').val();
+        var mensagem=$('input[name=message]').val();
 
         console.log('USUÁRIO' + usuario);
         console.log('MENSAGEM' + mensagem);
 
         //Data e hora de envio da mensagem:
+        let data_hora_obj = new Date();
 
+        let data_hora_msg = `[${data_hora_obj.getDate()}/${data_hora_obj.getMonth()}/${data_hora_obj.getFullYear()}-${data_hora_obj.getHours()}:${data_hora_obj.getMinutes()}:${data_hora_obj.getSeconds()}]`;
+
+        //Criação do objeto JSON na mensagem
+        var messageObject = {
+            author: usuario,
+            data_hora: data_hora_msg,
+            message: mensagem
+        }    
+
+        renderMessage(messageObject);
+        socket.emit('sendMessage', messageObject);
+
+        console.log('JSON: ' + JSON.stringify(messageObject));
 
         });
 
